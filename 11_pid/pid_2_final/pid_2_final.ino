@@ -1,13 +1,9 @@
 #include <Servo.h>
 
-#define cidl3 A2
-#define cidl4 A3
-#define cidp1 A0
-#define cidp2 A1
+int sensorCount = 4;
+long sensor[] = {A4, A3, A2, A1}; // leftmost - A4, rightmost - A0
 
-long sensor[] = {A4, A3, A2, A1}; //leftmost - A4, rightmost - A0
-
-//speeds
+// speeds
 int speed = 200;
 
 float p;
@@ -18,8 +14,8 @@ float error;
 float correction;
 float sp;
 
-float Kp = 5; // dummy
-float Ki = 0; //dummy
+float Kp = 5;  // dummy
+float Ki = 0;  // dummy
 float Kd = 40; //(Kp-1)*10
 
 int pos;
@@ -28,10 +24,10 @@ int sensor_sum;
 
 #define mRf 8
 // pwm
-#define mRb 6 
+#define mRb 6
 #define mLf 5
 // pwm
-#define mLb 7 
+#define mLb 7
 
 #define Servo_myservo 11;
 
@@ -65,11 +61,11 @@ int c1_vaha = 1, c2_vaha = 2, c3_vaha = 4;
 */
 void pid_calc();
 void calc_turn();
-void motor_drive(int , int );
+void motor_drive(int, int);
 
 // automatické načtení max a min hodnot pro každé čidlo
 /*void auto_nacteni() {
-  
+
   digitalWrite(mRf, LOW);
   analogWrite(mRb, 100);
   digitalWrite(mLf, HIGH);
@@ -129,7 +125,8 @@ void motor_drive(int , int );
   analogWrite(mRb, LOW);
 }
 */
-void setup() {
+void setup()
+{
   // motory
   pinMode(mRf, OUTPUT);
   pinMode(mRb, OUTPUT);
@@ -137,26 +134,26 @@ void setup() {
   pinMode(mLb, OUTPUT);
 
   // čidla
-  //sensors
+  // sensors
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
   pinMode(A4, INPUT);
 
   Serial.begin(9600);
-/* 
-  // ultrazvuk
-  pinMode(pTrig, OUTPUT);
-  pinMode(pEcho, INPUT);
+  /*
+    // ultrazvuk
+    pinMode(pTrig, OUTPUT);
+    pinMode(pEcho, INPUT);
 
-  // servo
-  myservo.attach(11);
+    // servo
+    myservo.attach(11);
 
-  // ostatní
-  Serial.begin(9600);
-  errorOld = 0;
-  Isuma = 0;
-  auto_nacteni();*/
+    // ostatní
+    Serial.begin(9600);
+    errorOld = 0;
+    Isuma = 0;
+    auto_nacteni();*/
 }
 /*
 // ovládání ultrazvuku
@@ -296,7 +293,7 @@ void motory(int smer, int rychlost = 100) {
     motory(0, 0);
     myservo.write(0);
   }
-  
+
 
   for (pos = 0; pos <= 180; pos += 10) {
     myservo.write(pos);
@@ -321,60 +318,57 @@ void motory(int smer, int rychlost = 100) {
     delay(1000);
   }
 }*/
-void loop(){
+void loop()
+{
   Serial.println(sensor_sum);
   pid_calc();
   calc_turn();
-  //delay(500);
-  }
+  // delay(500);
+}
 void pid_calc()
 {
   sensor_average = 0;
   sensor_sum = 0;
   i = 0;
 
-  for(int i = 0; i <= 3; i++)
+  for (int i = 0; i <= 3; i++)
   {
-    sensor[i]=analogRead(i);
+    sensor[i] = analogRead(i);
 
     /*Serial.print(i);
     Serial.print("=");
     Serial.print(sensor[i]);
     Serial.print(",");*/
-    sensor_average = sensor[i]*i*1000; //weighted mean
+    sensor_average = sensor[i] * i * 1000; // weighted mean
     sensor_sum += sensor[i];
   }
 
   pos = int(sensor_average / sensor_sum);
-  p =  pos - 2000;
+  p = pos - 2000;
   i += p;
   d = p - lp;
 
   lp = p;
 
-  correction = int(Kp*p + Ki*i + Kd*d);
-    correction = p*Kp + i*Ki + d*Kd;
-    const int max = speed/2 + 30;
-    if(correction > max)
-     correction = max;
-    if(correction < -max)
-     correction = (-1*max);
+  correction = int(Kp * p + Ki * i + Kd * d);
+  correction = p * Kp + i * Ki + d * Kd;
+  const int max = speed / 2 + 30;
+  if (correction > max)
+    correction = max;
+  if (correction < -max)
+    correction = (-1 * max);
 }
-
-
-
-
-
 
 void calc_turn()
 {
-    if(correction < 0)  //left
-     set_motors(max+correction, max);
-    else  //right
-     set_motors(max, max-correction);
+  if (correction < 0) // left
+    set_motors(max + correction, max);
+  else // right
+    set_motors(max, max - correction);
 }
 
-void motor_drive(int right, int left){
+void motor_drive(int right, int left)
+{
 
   Serial.print("correction");
   Serial.print("=");
@@ -392,25 +386,23 @@ void motor_drive(int right, int left){
   Serial.print("=");
   Serial.println(right);
 
-  
-  if(right>0)
+  if (right > 0)
   {
-    analogWrite(mRf, right);   
+    analogWrite(mRf, right);
     analogWrite(mRb, 0);
   }
-  else 
+  else
   {
-    analogWrite(mRf, 0); 
+    analogWrite(mRf, 0);
     analogWrite(mRb, abs(right));
   }
-  
- 
-  if(left>0)
+
+  if (left > 0)
   {
     analogWrite(mLf, left);
     analogWrite(mLb, 0);
   }
-  else 
+  else
   {
     analogWrite(mLf, 0);
     analogWrite(mLb, abs(left));
