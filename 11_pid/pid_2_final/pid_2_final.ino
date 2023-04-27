@@ -96,17 +96,16 @@ void pid_calc()
     correction = max;
   if (correction < -max)
     correction = (-1 * max);
-}
 
-void calc_turn()
-{
   if (correction < 0) // left
     set_motors(max + correction, max);
   else // right
     set_motors(max, max - correction);
 }
 
-void motor_drive(int right, int left)
+
+
+void set_motors(int right, int left)
 {
 
   Serial.print("correction");
