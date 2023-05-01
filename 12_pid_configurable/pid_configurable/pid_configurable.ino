@@ -1,6 +1,8 @@
+#include <LiquidCrystal.h>
+
 // Define pins for the line following sensors
 const int NUM_SENSORS = 4; // Change this value to the number of sensors you are using
-const int SENSOR_PINS[NUM_SENSORS] = {6, 6, 7, 7};
+const int SENSOR_PINS[NUM_SENSORS] = {6, 5, 4, 7};
 //const int SENSOR_PINS[NUM_SENSORS] = {6, 6, 6, 6};
 
 // Define pins for the two motors
@@ -77,7 +79,7 @@ void loop() {
   lastError = error;
   int motorSpeed1 = BASE_SPEED + correction;
   int motorSpeed2 = BASE_SPEED - correction;
-  setMotorSpeeds(motorSpeed1, motorSpeed2);
+  //setMotorSpeeds(motorSpeed1, motorSpeed2);
 }
 
 // Calculates the error between the current sensor values and the ideal values
