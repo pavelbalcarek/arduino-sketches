@@ -1,8 +1,14 @@
-#include <LiquidCrystal.h>
+#define LCD
+
+#ifdef LCD
+// knihovny pro LCD přes I2C
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#endif
 
 // Define pins for the line following sensors
 const int NUM_SENSORS = 4; // Change this value to the number of sensors you are using
-const int SENSOR_PINS[NUM_SENSORS] = {6, 5, 4, 7};
+const int SENSOR_PINS[NUM_SENSORS] = {6, 2, 3, 7};
 //const int SENSOR_PINS[NUM_SENSORS] = {6, 6, 6, 6};
 
 // Define pins for the two motors
@@ -13,6 +19,7 @@ const int MOTOR2_IN2 = 5;
 
 // Define base motor speed and PID constants
 const int BASE_SPEED = 150;
+const int MAX_SPEED = 220;
 const float Kp = 2;
 const float Ki = 0.5;
 const float Kd = 1;
@@ -24,6 +31,11 @@ float totalError = 0;
 // Initialize the servo motor
 const int SERVO_PIN = 6;
 int servoPosition = 90;
+
+#ifdef LCD
+// lcd
+LiquidCrystal_I2C lcdI2C(39, 16, 2);
+#endif
 
 void setup() {
   // Set up the line following sensors as inputs
@@ -41,6 +53,15 @@ void setup() {
   pinMode(SERVO_PIN, OUTPUT);
 
   Serial.begin(9600); // // Serial Communication is starting with 9600 of baudrate speed
+
+#ifdef LCD
+  lcdI2C.init();
+  lcdI2C.setBacklight(1);
+  lcdI2C.setCursor(0, 0);
+  lcdI2C.print("................");
+  lcdI2C.setCursor(0, 1);
+  lcdI2C.print("................");
+#endif
 }
 
 int customCeil(int num) {
@@ -57,6 +78,11 @@ int customCeil(int num) {
 }
 
 void loop() {
+#ifdef LCD
+  lcdI2C.setCursor(0, 0);
+  lcdI2C.print("................");
+#endif
+
   // Read the sensor values
   int sensorValues[NUM_SENSORS];
   for (int i = 0; i < NUM_SENSORS; i++) {
@@ -66,6 +92,11 @@ void loop() {
     Serial.print("=");
     Serial.print(sensorValues[i]);
     Serial.print(",");
+
+#ifdef LCD
+    lcdI2C.setCursor((i * 4), 0);
+    lcdI2C.print(sensorValues[i]);
+#endif
   }
 
   // Follow the line using PID control
@@ -77,9 +108,33 @@ void loop() {
   totalError += error;
   float correction = Kp * error + Ki * totalError + Kd * (error - lastError);
   lastError = error;
-  int motorSpeed1 = BASE_SPEED + correction;
-  int motorSpeed2 = BASE_SPEED - correction;
+  int motorSpeed1 = getSafeSpeed(BASE_SPEED + correction);
+  int motorSpeed2 = getSafeSpeed(BASE_SPEED - correction);
   //setMotorSpeeds(motorSpeed1, motorSpeed2);
+  //delay(1000);
+
+#ifdef LCD
+  lcdI2C.setCursor(0, 1);
+  lcdI2C.print(motorSpeed1);
+
+  lcdI2C.setCursor(6, 1);
+  lcdI2C.print("e=");
+  lcdI2C.print(error);
+
+  lcdI2C.setCursor(12, 1);
+  lcdI2C.print(motorSpeed2);
+#endif
+}
+
+int getSafeSpeed(int speed) {
+  if (speed > MAX_SPEED) {
+    return MAX_SPEED;
+  }
+  if (-speed > MAX_SPEED) {
+    return -MAX_SPEED;
+  }
+
+  return speed;
 }
 
 // Calculates the error between the current sensor values and the ideal values
