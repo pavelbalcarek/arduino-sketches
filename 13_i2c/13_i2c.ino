@@ -155,16 +155,20 @@ void setup()
   Serial.begin(9600);
   for( uint8_t addr = 8; addr <= 128; addr++ ) {
     Serial.println(addr);
+    //LiquidCrystal_I2C lcdI2C(addr, 16, 2);
     LiquidCrystal_I2C lcdI2C(addr, 16, 2);
    // inicializace LCD
     Serial.println("begin...");
-    lcdI2C.begin();
+    lcdI2C.init();
+    //lcdI2C.begin();
     // zapnutí podsvícení
     Serial.println("backlight...");
     lcdI2C.backlight();
     // vytisknutí hlášky na první řádek
     Serial.println("print...");
     lcdI2C.print(" ->dratek.cz<-");  // nastavení kurzoru na první znak, druhý řádek  // veškeré číslování je od nuly, poslední znak je tedy 19, 3  lcdI2C.setCursor ( 0, 1 );  lcdI2C.print("--------------------");  lcdI2C.setCursor ( 0, 2);  lcdI2C.print(" Test LCD pres I2C");  lcdI2C.setCursor ( 19, 3);  lcdI2C.print("!");  // nastavení počtu znaků a řádků LCD, zde 16x2  lcd.begin(16, 2);  // vytisknutí hlášky na první řádek  lcd.print("dratek.cz");
+    lcdI2C.setCursor(1, 1);
+    lcdI2C.print(addr);
     delay(1000);
   }
 
